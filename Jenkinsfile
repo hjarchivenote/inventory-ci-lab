@@ -34,14 +34,14 @@ pipeline {
         sh '''
           set -eu
           docker rm -f "$CANDIDATE" >/dev/null 2>&1 || true
-          docker run -d --name "$CANDIDATE" -p 127.0.0.1:5051:5000 "$IMAGE:$BUILD_NUMBER"
+          docker run -d --name "$CANDIDATE" -p 5051:5000 "$IMAGE:$BUILD_NUMBER"
           ready=0
           for i in $(seq 1 20); do
-            if curl -fsS http://127.0.0.1:5051/health | grep -q '"status":"ok"'; then ready=1; break; fi
+            if curl -fsS http://host.docker.internal:5051/health | grep -q '"status":"ok"'; then ready=1; break; fi
             sleep 1
           done
           test "$ready" -eq 1
-          curl -fsS http://127.0.0.1:5051/api/items | grep -q 'router'
+          curl -fsS http://host.docker.internal:5051/api/items | grep -q 'router'
         '''
       }
     }
@@ -50,10 +50,10 @@ pipeline {
         sh '''
           set -eu
           docker rm -f "$LIVE" >/dev/null 2>&1 || true
-          docker run -d --restart unless-stopped --name "$LIVE" -p 127.0.0.1:5050:5000 "$IMAGE:$BUILD_NUMBER"
+          docker run -d --restart unless-stopped --name "$LIVE" -p 5050:5000 "$IMAGE:$BUILD_NUMBER"
           ready=0
           for i in $(seq 1 20); do
-            if curl -fsS http://127.0.0.1:5050/health | grep -q '"status":"ok"'; then ready=1; break; fi
+            if curl -fsS http://host.docker.internal:5050/health | grep -q '"status":"ok"'; then ready=1; break; fi
             sleep 1
           done
           test "$ready" -eq 1
